@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- MOVED TO public/index.html for Railway deployment -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -211,7 +211,7 @@ html,body{width:100%;height:100%;background:#F4F6F9;font-family:'Inter',sans-ser
 
 .metric-card{
   background:var(--white);border-radius:16px;
-  padding:24px 22px;position:relative;overflow:hidden;
+  padding:24px 22px;position:relative;
   box-shadow:0 8px 26px rgba(11,31,58,0.06);
   border:1px solid rgba(11,31,58,0.05);
 }
@@ -271,8 +271,8 @@ html,body{width:100%;height:100%;background:#F4F6F9;font-family:'Inter',sans-ser
       <div class="sub">Patient Journey & Key Metrics</div>
     </div>
     <div class="tab-row">
-      <button class="tab active" onclick="switchTab('journey')">Slide 3 — Patient Journey</button>
-      <button class="tab" onclick="switchTab('metrics')">Slide 11 — Key Metrics</button>
+      <button class="tab active" onclick="switchTab('journey')">Patient Journey</button>
+      <button class="tab" onclick="switchTab('metrics')">Key Metrics</button>
     </div>
   </div>
 
@@ -295,7 +295,7 @@ html,body{width:100%;height:100%;background:#F4F6F9;font-family:'Inter',sans-ser
         <div class="decor-b"></div>
         <div class="slide-inner">
           <div class="slide-header">
-            <div class="slide-eyebrow">Chapter Two · The Reality</div>
+            <div class="slide-eyebrow">Referral to Scheduling Journey Map</div>
             <div class="slide-title" contenteditable="true">Our patient journey,<br/><em>as it exists today.</em></div>
             <div class="slide-subtitle" contenteditable="true">Before we can fix what's broken, we have to see it clearly. Here's the path a patient walks from referral to relief, and the moments where we risk losing them.</div>
           </div>
@@ -352,20 +352,45 @@ html,body{width:100%;height:100%;background:#F4F6F9;font-family:'Inter',sans-ser
 
 <script>
 // ── DATA ──
-let journeySteps = [
-  { title: "Referral", desc: "Provider sends the patient to us", gap: "Lag: 2–7 days" },
-  { title: "Intake", desc: "Insurance, history, scheduling", gap: "Phone tag delays" },
-  { title: "Sleep Test", desc: "Device delivered & returned", gap: "Results sit for days" },
-  { title: "Diagnosis & Fit", desc: "Device selected & delivered", gap: "Scheduling friction" },
-  { title: "Follow-Up", desc: "Compliance & adjustments", gap: "Patients fall silent" }
-];
+let journeySteps = [];
+let metricsData = [];
 
-let metricsData = [
-  { label: "Metric 01", name: "Days to test delivery", value: "≤ 2", unit: "days" },
-  { label: "Metric 02", name: "Days from diagnosis to fitting", value: "≤ 3", unit: "days" },
-  { label: "Metric 03", name: "Follow-up completion rate", value: "95", unit: "%+" },
-  { label: "Metric 04", name: "Patient satisfaction score", value: "4.5", unit: "/5+" }
-];
+// ── BACKEND SYNC ──
+async function loadData() {
+  try {
+    const res = await fetch('http://localhost:3000/api/data');
+    const data = await res.json();
+    journeySteps = data.slides?.journeySteps || [
+      { title: "Referral", desc: "Provider sends the patient to us", gap: "Lag: 2–7 days" },
+      { title: "Intake", desc: "Insurance, history, scheduling", gap: "Phone tag delays" },
+      { title: "Sleep Test", desc: "Device delivered & returned", gap: "Results sit for days" },
+      { title: "Diagnosis & Fit", desc: "Device selected & delivered", gap: "Scheduling friction" },
+      { title: "Follow-Up", desc: "Compliance & adjustments", gap: "Patients fall silent" }
+    ];
+    metricsData = data.slides?.metricsData || [
+      { label: "Metric 01", name: "Days to test delivery", value: "≤ 2", unit: "days" },
+      { label: "Metric 02", name: "Days from diagnosis to fitting", value: "≤ 3", unit: "days" },
+      { label: "Metric 03", name: "Follow-up completion rate", value: "95", unit: "%+" },
+      { label: "Metric 04", name: "Patient satisfaction score", value: "4.5", unit: "/5+" }
+    ];
+    renderJourney();
+    renderMetrics();
+  } catch (e) {
+    console.error('Failed to load data from backend', e);
+  }
+}
+
+async function saveData() {
+  try {
+    await fetch('http://localhost:3000/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slides: { journeySteps, metricsData } })
+    });
+  } catch (e) {
+    console.error('Failed to save data to backend', e);
+  }
+}
 
 // ── RENDER JOURNEY ──
 function renderJourney() {
@@ -378,11 +403,24 @@ function renderJourney() {
       <div class="remove-btn" onclick="removeStep(${i})" title="Remove step">✕</div>
       <div class="step-dot">${i + 1}</div>
       <div class="step-card">
-        <div class="title" contenteditable="true" oninput="journeySteps[${i}].title=this.textContent">${step.title}</div>
-        <div class="desc" contenteditable="true" oninput="journeySteps[${i}].desc=this.textContent">${step.desc}</div>
-        <div class="gap-tag" contenteditable="true" oninput="journeySteps[${i}].gap=this.textContent">${step.gap}</div>
+        <div class="title" contenteditable="true">${step.title}</div>
+        <div class="desc" contenteditable="true">${step.desc}</div>
+        <div class="gap-tag" contenteditable="true">${step.gap}</div>
       </div>
     `;
+    // Add input listeners for saving
+    el.querySelector('.title').addEventListener('input', e => {
+      journeySteps[i].title = e.target.textContent;
+      saveData();
+    });
+    el.querySelector('.desc').addEventListener('input', e => {
+      journeySteps[i].desc = e.target.textContent;
+      saveData();
+    });
+    el.querySelector('.gap-tag').addEventListener('input', e => {
+      journeySteps[i].gap = e.target.textContent;
+      saveData();
+    });
     grid.appendChild(el);
   });
 }
@@ -390,6 +428,7 @@ function renderJourney() {
 function addStep() {
   journeySteps.push({ title: "New Step", desc: "Description here", gap: "Gap note" });
   renderJourney();
+  saveData();
   // scroll to new step
   const grid = document.getElementById('journey-grid');
   const last = grid.lastElementChild;
@@ -400,6 +439,7 @@ function removeStep(i) {
   if (journeySteps.length <= 1) return;
   journeySteps.splice(i, 1);
   renderJourney();
+  saveData();
 }
 
 // ── RENDER METRICS ──
@@ -413,13 +453,30 @@ function renderMetrics() {
     el.innerHTML = `
       <div class="remove-btn" onclick="removeMetric(${i})" title="Remove metric">✕</div>
       <div class="ring"></div>
-      <div class="lab" contenteditable="true" oninput="metricsData[${i}].label=this.textContent">Metric ${num}</div>
-      <h4 contenteditable="true" oninput="metricsData[${i}].name=this.textContent">${m.name}</h4>
+      <div class="lab" contenteditable="true">Metric ${num}</div>
+      <h4 contenteditable="true">${m.name}</h4>
       <div class="tgt">
         <span class="tl">Target</span>
-        <div class="tv" contenteditable="true" oninput="metricsData[${i}].value=this.textContent">${m.value}<span class="u">${m.unit}</span></div>
+        <div class="tv" contenteditable="true">${m.value}<span class="u">${m.unit}</span></div>
       </div>
     `;
+    // Add input listeners for saving
+    el.querySelector('.lab').addEventListener('input', e => {
+      metricsData[i].label = e.target.textContent;
+      saveData();
+    });
+    el.querySelector('h4').addEventListener('input', e => {
+      metricsData[i].name = e.target.textContent;
+      saveData();
+    });
+    el.querySelector('.tv').addEventListener('input', e => {
+      // Split value and unit
+      const value = e.target.childNodes[0]?.textContent || '';
+      const unit = e.target.querySelector('.u')?.textContent || '';
+      metricsData[i].value = value;
+      metricsData[i].unit = unit;
+      saveData();
+    });
     grid.appendChild(el);
   });
 }
@@ -428,12 +485,14 @@ function addMetric() {
   const num = metricsData.length + 1;
   metricsData.push({ label: `Metric ${String(num).padStart(2,'0')}`, name: "New metric name", value: "0", unit: "unit" });
   renderMetrics();
+  saveData();
 }
 
 function removeMetric(i) {
   if (metricsData.length <= 1) return;
   metricsData.splice(i, 1);
   renderMetrics();
+  saveData();
 }
 
 // ── TAB SWITCHING ──
@@ -450,8 +509,7 @@ function switchTab(tab) {
 }
 
 // ── INIT ──
-renderJourney();
-renderMetrics();
+loadData();
 </script>
 </body>
 </html>
