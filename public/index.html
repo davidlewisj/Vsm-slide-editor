@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- MOVED TO public/index.html for Railway deployment -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -26,10 +26,466 @@
   --danger-bg:#FFF0F0;
 }
 html,body{width:100%;height:100%;background:#F4F6F9;font-family:'Inter',sans-serif;color:var(--ink);overflow-x:hidden;}
-/* ...rest of your CSS... */
+/* ── APP SHELL ── */
+.app{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{
+  background:var(--navy);padding:16px 32px;
+  display:flex;justify-content:space-between;align-items:center;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 4px 20px rgba(0,0,0,0.15);
+}
+.topbar h1{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.02em;}
+.topbar .sub{font-size:12px;color:var(--teal-bright);letter-spacing:0.15em;text-transform:uppercase;font-weight:500;margin-top:2px;}
+.tab-row{display:flex;gap:4px;}
+.tab{
+  background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);
+  border:none;cursor:pointer;padding:10px 24px;border-radius:8px 8px 0 0;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;
+  letter-spacing:0.05em;transition:all .2s;
+}
+.tab:hover{background:rgba(255,255,255,0.15);color:#fff;}
+.tab.active{background:var(--teal);color:#fff;}
+.workspace{flex:1;padding:32px;display:flex;flex-direction:column;gap:24px;}
+/* ── SLIDE CANVAS ── */
+.canvas-wrap{
+  display:none;flex-direction:column;gap:20px;
+}
+.canvas-wrap.active{display:flex;}
+.toolbar{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 24px;
+  background:var(--white);border-radius:14px;
+  box-shadow:0 4px 16px rgba(11,31,58,0.06);
+  border:1px solid rgba(11,31,58,0.06);
+}
+.toolbar .label{
+  font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--ink);
+  margin-right:auto;
+}
+.toolbar .label span{
+  font-weight:400;font-style:italic;color:var(--text-mid);font-size:14px;
+  margin-left:8px;
+}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 20px;border-radius:10px;border:none;cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;
+  letter-spacing:0.02em;transition:all .2s;
+}
+.btn-primary{background:var(--teal);color:#fff;}
+.btn-primary:hover{background:#178080;transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,140,140,0.3);}
+.btn-outline{background:transparent;color:var(--teal);border:1.5px solid var(--teal);}
+.btn-outline:hover{background:var(--teal-pale);}
+.btn-danger{background:transparent;color:var(--danger);border:1.5px solid var(--danger);}
+.btn-danger:hover{background:var(--danger-bg);}
+.btn svg{width:16px;height:16px;flex-shrink:0;}
+.hint{
+  font-size:12px;color:var(--text-light);font-style:italic;
+  text-align:center;padding:8px 0;
+}
+/* ── SLIDE 3 — PATIENT JOURNEY ── */
+.slide-canvas{
+  background:var(--sky);
+  border-radius:20px;
+  padding:48px 56px;
+  box-shadow:0 8px 40px rgba(11,31,58,0.08);
+  border:1px solid rgba(11,31,58,0.06);
+  position:relative;
+  overflow:hidden;
+}
+.slide-canvas .decor-a{
+  position:absolute;top:-40px;right:-40px;width:160px;height:160px;
+  background:var(--teal-pale);border-radius:32px;transform:rotate(-10deg);z-index:0;
+}
+.slide-canvas .decor-b{
+  position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;
+  background:var(--warm);opacity:0.5;border-radius:28px;transform:rotate(15deg);z-index:0;
+}
+.slide-inner{position:relative;z-index:1;}
+.slide-header{margin-bottom:36px;}
+.slide-eyebrow{font-size:12px;letter-spacing:0.35em;color:var(--teal);text-transform:uppercase;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:12px;}
+.slide-eyebrow::before{content:'';width:36px;height:1px;background:var(--teal);}
+.slide-title{font-family:'Fraunces',serif;font-weight:900;font-size:48px;line-height:1;color:var(--ink);letter-spacing:-0.03em;margin-bottom:14px;}
+.slide-title em{font-style:italic;color:var(--teal);font-weight:500;}
+.slide-subtitle{font-family:'Fraunces',serif;font-size:16px;font-style:italic;line-height:1.45;color:var(--text-mid);max-width:700px;}
+[contenteditable]{
+  outline:none;border-radius:4px;transition:box-shadow .2s;
+  padding:2px 4px;margin:-2px -4px;
+}
+[contenteditable]:hover{box-shadow:0 0 0 2px rgba(26,140,140,0.2);}
+[contenteditable]:focus{box-shadow:0 0 0 2px var(--teal);background:rgba(255,255,255,0.7);}
+/* Journey steps grid */
+.journey-grid{
+  display:flex;gap:16px;flex-wrap:wrap;
+}
+.journey-step{
+  flex:1 1 180px;max-width:280px;
+  display:flex;flex-direction:column;align-items:center;
+  position:relative;
+}
+.step-dot{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--white);border:2px solid var(--teal);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-weight:700;font-size:22px;
+  color:var(--teal);font-style:italic;
+  margin-bottom:16px;
+  box-shadow:0 6px 18px rgba(26,140,140,0.15);
+}
+.step-card{
+  background:var(--white);border-radius:14px;
+  padding:18px 20px;width:100%;
+  box-shadow:0 6px 20px rgba(11,31,58,0.05);
+  border:1px solid rgba(11,31,58,0.05);
+  text-align:left;
+  position:relative;
+}
+.step-card .title{
+  font-family:'Fraunces',serif;font-weight:700;font-size:17px;
+  color:var(--ink);margin-bottom:6px;line-height:1.1;
+}
+.step-card .desc{font-size:12px;line-height:1.5;color:var(--text-mid);margin-bottom:10px;}
+.step-card .gap-tag{
+  padding:6px 10px;background:rgba(212,168,87,0.12);
+  border-left:3px solid var(--warm);border-radius:4px;
+  font-size:11px;color:#7B5E2A;font-weight:600;letter-spacing:0.04em;
+}
+.remove-btn{
+  position:absolute;top:-8px;right:-8px;
+  width:24px;height:24px;border-radius:50%;
+  background:var(--danger);color:#fff;border:2px solid var(--white);
+  display:none;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;font-weight:700;
+  box-shadow:0 2px 8px rgba(217,69,69,0.3);
+  transition:transform .15s;z-index:5;
+}
+.remove-btn:hover{transform:scale(1.15);}
+.journey-step:hover .remove-btn,.metric-card:hover .remove-btn{display:flex;}
+/* Footer note */
+.slide-note{
+  margin-top:28px;background:var(--white);border-radius:14px;
+  padding:18px 28px;box-shadow:0 6px 20px rgba(11,31,58,0.05);
+  border-left:4px solid var(--teal);
+  display:flex;align-items:center;gap:16px;
+}
+.slide-note .ic{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--teal-pale);color:var(--teal);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.slide-note p{
+  font-family:'Fraunces',serif;font-style:italic;font-size:15px;
+  line-height:1.45;color:var(--text-mid);
+}
+/* ── SLIDE 11 — METRICS ── */
+.metrics-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+.metrics-left{display:flex;flex-direction:column;gap:20px;}
+.metrics-right{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.cadence-box{
+  background:var(--white);border-radius:14px;
+  padding:18px 24px;box-shadow:0 6px 20px rgba(11,31,58,0.05);
+  border-left:4px solid var(--warm);
+  display:flex;align-items:center;gap:14px;
+}
+.cadence-box .ic{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(212,168,87,0.18);color:var(--warm);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.cadence-box p{
+  font-family:'Fraunces',serif;font-size:14px;font-style:italic;
+  color:var(--text-mid);line-height:1.45;
+}
+.cadence-box em{color:var(--teal);font-weight:700;}
+.metric-card{
+  background:var(--white);border-radius:16px;
+  padding:24px 22px;position:relative;
+  box-shadow:0 8px 26px rgba(11,31,58,0.06);
+  border:1px solid rgba(11,31,58,0.05);
+}
+.metric-card::before{
+  content:'';position:absolute;top:0;left:0;width:5px;height:100%;
+}
+.metric-colors{display:none;}
+.metric-card:nth-child(4n+1)::before{background:var(--teal);}
+.metric-card:nth-child(4n+2)::before{background:var(--teal-bright);}
+.metric-card:nth-child(4n+3)::before{background:var(--warm);}
+.metric-card:nth-child(4n+0)::before{background:var(--coral);}
+.metric-card .ring{
+  position:absolute;top:-16px;right:-16px;width:90px;height:90px;
+  border-radius:50%;border:10px solid rgba(26,140,140,0.08);
+}
+.metric-card .lab{
+  font-family:'Fraunces',serif;font-style:italic;font-size:12px;
+  letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);
+  font-weight:600;margin-bottom:8px;
+}
+.metric-card h4{
+  font-family:'Fraunces',serif;font-weight:700;font-size:16px;
+  color:var(--ink);margin-bottom:14px;line-height:1.2;
+  position:relative;z-index:2;
+}
+.metric-card .tgt{
+  display:flex;align-items:baseline;gap:8px;
+  padding-top:12px;border-top:1px solid rgba(11,31,58,0.08);
+}
+.metric-card .tl{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-light);font-weight:600;}
+.metric-card .tv{
+  font-family:'Fraunces',serif;font-weight:700;font-style:italic;
+  font-size:24px;color:var(--teal);letter-spacing:-0.02em;
+}
+.metric-card .tv .u{
+  font-size:12px;font-style:normal;color:var(--text-mid);
+  font-weight:500;margin-left:2px;font-family:'Inter',sans-serif;
+}
+@media(max-width:900px){
+  .workspace{padding:16px;}
+  .slide-canvas{padding:28px 24px;}
+  .slide-title{font-size:32px;}
+  .metrics-layout{grid-template-columns:1fr;}
+  .journey-grid{flex-direction:column;}
+  .journey-step{max-width:100%;}
+}
 </style>
 </head>
 <body>
-<!-- ...full HTML and JS from your root index.html goes here... -->
+
+<div class="app">
+  <div class="topbar">
+    <div>
+      <h1>Slide Editor</h1>
+      <div class="sub">Patient Journey & Key Metrics</div>
+    </div>
+    <div class="tab-row">
+      <button class="tab active" onclick="switchTab('journey')">Patient Journey</button>
+      <button class="tab" onclick="switchTab('metrics')">Key Metrics</button>
+    </div>
+  </div>
+
+  <div class="workspace">
+
+    <!-- ══════════════════════════════════
+         SLIDE 3 — PATIENT JOURNEY EDITOR
+         ══════════════════════════════════ -->
+    <div class="canvas-wrap active" id="journey-tab">
+      <div class="toolbar">
+        <div class="label">Patient Journey<span>click any text to edit</span></div>
+        <button class="btn btn-primary" onclick="addStep()">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          Add Step
+        </button>
+      </div>
+
+      <div class="slide-canvas">
+        <div class="decor-a"></div>
+        <div class="decor-b"></div>
+        <div class="slide-inner">
+          <div class="slide-header">
+            <div class="slide-eyebrow">Referral to Scheduling Journey Map</div>
+            <div class="slide-title" contenteditable="true">Our patient journey,<br/><em>as it exists today.</em></div>
+            <div class="slide-subtitle" contenteditable="true">Before we can fix what's broken, we have to see it clearly. Here's the path a patient walks from referral to relief, and the moments where we risk losing them.</div>
+          </div>
+          <div class="journey-grid" id="journey-grid">
+            <!-- Steps injected by JS -->
+          </div>
+          <div class="slide-note">
+            <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+            <p contenteditable="true">Every gold-marked moment is a chance for a patient to disappear, and for real health outcomes to slip away with them.</p>
+          </div>
+        </div>
+      </div>
+      <p class="hint">Hover over a step card and click the red ✕ to remove it. Click any text to edit in place.</p>
+    </div>
+
+    <!-- ══════════════════════════════════
+         SLIDE 11 — KEY METRICS EDITOR
+         ══════════════════════════════════ -->
+    <div class="canvas-wrap" id="metrics-tab">
+      <div class="toolbar">
+        <div class="label">Key Metrics<span>click any text to edit</span></div>
+        <button class="btn btn-primary" onclick="addMetric()">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          Add Metric
+        </button>
+      </div>
+
+      <div class="slide-canvas" style="background:var(--sky);">
+        <div class="decor-a" style="background:var(--teal-pale);top:40px;right:-30px;width:140px;height:140px;"></div>
+        <div class="slide-inner">
+          <div class="metrics-layout">
+            <div class="metrics-left">
+              <div class="slide-header">
+                <div class="slide-eyebrow">Chapter Seven · The Measure</div>
+                <div class="slide-title" contenteditable="true">How we'll know<br/><em>we're winning.</em></div>
+                <div class="slide-subtitle" contenteditable="true">What gets measured gets managed. These four numbers are the heartbeat of our patient experience: reviewed weekly, owned collectively, improved relentlessly.</div>
+              </div>
+              <div class="cadence-box">
+                <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" fill="currentColor"/></svg></div>
+                <p contenteditable="true">Reviewed every <em>Monday morning</em> as a team. No metric hidden, no problem left alone.</p>
+              </div>
+            </div>
+            <div class="metrics-right" id="metrics-grid">
+              <!-- Metrics injected by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="hint">Hover over a metric card and click the red ✕ to remove it. Click any text to edit in place.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+let journeySteps = [];
+let metricsData = [];
+// ── BACKEND SYNC ──
+async function loadData() {
+  try {
+    const res = await fetch('http://localhost:3000/api/data');
+    const data = await res.json();
+    journeySteps = data.slides?.journeySteps || [
+      { title: "Referral", desc: "Provider sends the patient to us", gap: "Lag: 2–7 days" },
+      { title: "Intake", desc: "Insurance, history, scheduling", gap: "Phone tag delays" },
+      { title: "Sleep Test", desc: "Device delivered & returned", gap: "Results sit for days" },
+      { title: "Diagnosis & Fit", desc: "Device selected & delivered", gap: "Scheduling friction" },
+      { title: "Follow-Up", desc: "Compliance & adjustments", gap: "Patients fall silent" }
+    ];
+    metricsData = data.slides?.metricsData || [
+      { label: "Metric 01", name: "Days to test delivery", value: "≤ 2", unit: "days" },
+      { label: "Metric 02", name: "Days from diagnosis to fitting", value: "≤ 3", unit: "days" },
+      { label: "Metric 03", name: "Follow-up completion rate", value: "95", unit: "%+" },
+      { label: "Metric 04", name: "Patient satisfaction score", value: "4.5", unit: "/5+" }
+    ];
+    renderJourney();
+    renderMetrics();
+  } catch (e) {
+    console.error('Failed to load data from backend', e);
+  }
+}
+async function saveData() {
+  try {
+    await fetch('http://localhost:3000/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slides: { journeySteps, metricsData } })
+    });
+  } catch (e) {
+    console.error('Failed to save data to backend', e);
+  }
+}
+// ── RENDER JOURNEY ──
+function renderJourney() {
+  const grid = document.getElementById('journey-grid');
+  grid.innerHTML = '';
+  journeySteps.forEach((step, i) => {
+    const el = document.createElement('div');
+    el.className = 'journey-step';
+    el.innerHTML = `
+      <div class="remove-btn" onclick="removeStep(${i})" title="Remove step">✕</div>
+      <div class="step-dot">${i + 1}</div>
+      <div class="step-card">
+        <div class="title" contenteditable="true">${step.title}</div>
+        <div class="desc" contenteditable="true">${step.desc}</div>
+        <div class="gap-tag" contenteditable="true">${step.gap}</div>
+      </div>
+    `;
+    // Add input listeners for saving
+    el.querySelector('.title').addEventListener('input', e => {
+      journeySteps[i].title = e.target.textContent;
+      saveData();
+    });
+    el.querySelector('.desc').addEventListener('input', e => {
+      journeySteps[i].desc = e.target.textContent;
+      saveData();
+    });
+    el.querySelector('.gap-tag').addEventListener('input', e => {
+      journeySteps[i].gap = e.target.textContent;
+      saveData();
+    });
+    grid.appendChild(el);
+  });
+}
+function addStep() {
+  journeySteps.push({ title: "New Step", desc: "Description here", gap: "Gap note" });
+  renderJourney();
+  saveData();
+  // scroll to new step
+  const grid = document.getElementById('journey-grid');
+  const last = grid.lastElementChild;
+  if (last) last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function removeStep(i) {
+  if (journeySteps.length <= 1) return;
+  journeySteps.splice(i, 1);
+  renderJourney();
+  saveData();
+}
+// ── RENDER METRICS ──
+function renderMetrics() {
+  const grid = document.getElementById('metrics-grid');
+  grid.innerHTML = '';
+  metricsData.forEach((m, i) => {
+    const num = String(i + 1).padStart(2, '0');
+    const el = document.createElement('div');
+    el.className = 'metric-card';
+    el.innerHTML = `
+      <div class="remove-btn" onclick="removeMetric(${i})" title="Remove metric">✕</div>
+      <div class="ring"></div>
+      <div class="lab" contenteditable="true">Metric ${num}</div>
+      <h4 contenteditable="true">${m.name}</h4>
+      <div class="tgt">
+        <span class="tl">Target</span>
+        <div class="tv" contenteditable="true">${m.value}<span class="u">${m.unit}</span></div>
+      </div>
+    `;
+    // Add input listeners for saving
+    el.querySelector('.lab').addEventListener('input', e => {
+      metricsData[i].label = e.target.textContent;
+      saveData();
+    });
+    el.querySelector('h4').addEventListener('input', e => {
+      metricsData[i].name = e.target.textContent;
+      saveData();
+    });
+    el.querySelector('.tv').addEventListener('input', e => {
+      // Split value and unit
+      const value = e.target.childNodes[0]?.textContent || '';
+      const unit = e.target.querySelector('.u')?.textContent || '';
+      metricsData[i].value = value;
+      metricsData[i].unit = unit;
+      saveData();
+    });
+    grid.appendChild(el);
+  });
+}
+function addMetric() {
+  const num = metricsData.length + 1;
+  metricsData.push({ label: `Metric ${String(num).padStart(2,'0')}`, name: "New metric name", value: "0", unit: "unit" });
+  renderMetrics();
+  saveData();
+}
+function removeMetric(i) {
+  if (metricsData.length <= 1) return;
+  metricsData.splice(i, 1);
+  renderMetrics();
+  saveData();
+}
+// ── TAB SWITCHING ──
+function switchTab(tab) {
+  document.querySelectorAll('.canvas-wrap').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  if (tab === 'journey') {
+    document.getElementById('journey-tab').classList.add('active');
+    document.querySelectorAll('.tab')[0].classList.add('active');
+  } else {
+    document.getElementById('metrics-tab').classList.add('active');
+    document.querySelectorAll('.tab')[1].classList.add('active');
+  }
+}
+// ── INIT ──
+loadData();
+</script>
 </body>
 </html>
