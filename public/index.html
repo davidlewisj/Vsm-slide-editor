@@ -122,6 +122,19 @@ html,body{width:100%;height:100%;background:#F4F6F9;font-family:'Inter',sans-ser
   flex:1 1 180px;max-width:280px;
   display:flex;flex-direction:column;align-items:center;
   position:relative;
+  transition:transform 0.25s cubic-bezier(.4,1.6,.4,1), box-shadow 0.2s;
+  z-index:1;
+}
+.journey-step.dragging {
+  opacity: 0.5;
+  z-index: 10;
+  box-shadow: 0 8px 32px rgba(26,140,140,0.18);
+}
+.journey-step.drag-over {
+  transform: scale(1.06) translateY(-6px);
+  box-shadow: 0 8px 32px rgba(26,140,140,0.18);
+  z-index: 5;
+}
 }
 .step-dot{
   width:56px;height:56px;border-radius:50%;
@@ -391,6 +404,56 @@ function renderJourney() {
         <div class="gap-tag" contenteditable="true">${step.gap}</div>
       </div>
     `;
+    // Drag and drop swap handlers
+    el.setAttribute('draggable', 'true');
+    el.addEventListener('dragstart', (e) => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', i);
+      el.classList.add('dragging');
+      // Animate: keep original position
+      el.style.transition = 'none';
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      el.style.transition = '';
+    });
+    el.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', () => {
+      el.classList.remove('drag-over');
+    });
+    el.addEventListener('drop', (e) => {
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      const fromIdx = parseInt(e.dataTransfer.getData('text/plain'), 10);
+      const toIdx = i;
+      if (fromIdx !== toIdx) {
+        // Animate swap
+        const grid = document.getElementById('journey-grid');
+        const fromEl = grid.children[fromIdx];
+        const toEl = grid.children[toIdx];
+        // Get positions
+        const fromRect = fromEl.getBoundingClientRect();
+        const toRect = toEl.getBoundingClientRect();
+        // Animate both
+        fromEl.style.transition = 'transform 0.25s cubic-bezier(.4,1.6,.4,1)';
+        toEl.style.transition = 'transform 0.25s cubic-bezier(.4,1.6,.4,1)';
+        fromEl.style.transform = `translate(${toRect.left - fromRect.left}px, ${toRect.top - fromRect.top}px)`;
+        toEl.style.transform = `translate(${fromRect.left - toRect.left}px, ${fromRect.top - toRect.top}px)`;
+        setTimeout(() => {
+          fromEl.style.transform = '';
+          toEl.style.transform = '';
+          // Swap steps in data
+          const temp = journeySteps[fromIdx];
+          journeySteps[fromIdx] = journeySteps[toIdx];
+          journeySteps[toIdx] = temp;
+          renderJourney();
+          saveData();
+        }, 250);
+      }
+    });
     // Add input listeners for saving
     el.querySelector('.title').addEventListener('input', e => {
       journeySteps[i].title = e.target.textContent;
